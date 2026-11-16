@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Dragtionary</title>
+  <link rel="stylesheet" href="vocab.css">
+</head>
+<body>
+  <header>
+    <h1>Dragtionary</h1>
+    <nav>
+      <button class="tab active" data-tab="list" data-kind="word" data-i18n="tab_words"></button>
+      <button class="tab" data-tab="list" data-kind="term" data-i18n="tab_terms"></button>
+      <button class="tab" data-tab="quiz" data-i18n="tab_quiz"></button>
+      <button class="tab" data-tab="settings" data-i18n="tab_settings"></button>
+      <a class="tab" href="viewer.html" target="_blank" data-i18n="tab_pdf"></a>
+      <a class="tab second" href="welcome.html" target="_blank" data-i18n="tab_guide"></a>
+    </nav>
+  </header>
+
+  <main>
+    <section id="list" class="panel active">
+      <div class="toolbar">
+        <input id="search" type="search" data-i18n-placeholder="search_ph">
+        <span id="count" class="muted"></span>
+        <button id="export" data-i18n="export_csv"></button>
+      </div>
+      <div id="empty" class="empty" hidden></div>
+      <table id="table" hidden>
+        <thead>
+          <tr>
+            <th id="col-word"></th><th id="col-meaning"></th>
+            <th data-i18n="col_context"></th><th data-i18n="col_score"></th><th data-i18n="col_added"></th><th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </section>
+
+    <section id="quiz" class="panel">
+      <div id="quiz-start">
+        <p data-i18n="quiz_intro"></p>
+        <div class="toolbar">
+          <label><span data-i18n="q_mode"></span>
+            <select id="quiz-mode">
+              <option value="ai" data-i18n="q_mode_ai"></option>
+              <option value="choice" data-i18n="q_mode_choice"></option>
+            </select>
+          </label>
+          <label><span data-i18n="q_scope"></span>
+            <select id="quiz-scope">
+              <option value="word" data-i18n="tab_words"></option>
+              <option value="term" data-i18n="tab_terms"></option>
+              <option value="all" data-i18n="q_all"></option>
+            </select>
+          </label>
+          <label><span data-i18n="q_size"></span>
+            <select id="quiz-size">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="20">20</option>
+              <option value="9999" data-i18n="q_all"></option>
+            </select>
+          </label>
+          <label id="quiz-dir-label"><span data-i18n="q_dir"></span>
+            <select id="quiz-dir">
+              <option value="word" data-i18n="q_dir_w2m"></option>
+              <option value="meaning" data-i18n="q_dir_m2w"></option>
+            </select>
+          </label>
+          <button id="quiz-go" class="primary" data-i18n="q_start"></button>
+        </div>
+        <p id="quiz-note" class="muted"></p>
+      </div>
+      <div id="quiz-run" hidden>
+        <div class="muted" id="quiz-progress"></div>
+        <div id="quiz-question" class="question"></div>
+        <button id="quiz-hint" class="link hint" hidden data-i18n="q_hint"></button>
+        <div id="quiz-context" class="muted"></div>
+        <div id="quiz-choices" class="choices"></div>
+        <div id="quiz-answer-box" hidden>
+          <textarea id="quiz-answer" rows="3" data-i18n-placeholder="q_answer_ph"></textarea>
+          <div class="toolbar">
+            <button id="quiz-submit" class="primary" data-i18n="q_submit"></button>
+            <button id="quiz-skip" data-i18n="q_skip"></button>
+            <span class="muted" data-i18n="q_enter_hint"></span>
+          </div>
+        </div>
+        <div id="quiz-feedback" hidden>
+          <div id="quiz-verdict" class="verdict"></div>
+          <div id="quiz-feedback-text"></div>
+          <div id="quiz-reference"></div>
+          <div id="quiz-self" class="toolbar" hidden>
+            <span class="muted" data-i18n="q_self"></span>
+            <button id="quiz-self-right" data-i18n="q_self_right"></button>
+            <button id="quiz-self-wrong" data-i18n="q_self_wrong"></button>
+          </div>
+        </div>
+        <button id="quiz-next" class="primary" hidden></button>
+      </div>
+      <div id="quiz-result" hidden>
+        <h2 id="quiz-score"></h2>
+        <div id="quiz-wrong"></div>
+        <button id="quiz-again" class="primary" data-i18n="q_again"></button>
+      </div>
+    </section>
+
+    <section id="settings" class="panel">
+      <div class="field">
+        <label><span data-i18n="s_language"></span> <select id="target"></select></label>
+        <div class="muted" data-i18n="s_language_help"></div>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="enabled"> <span data-i18n="s_enabled"></span></label>
+      </div>
+      <div class="field">
+        <label><input type="checkbox" id="pdfAuto"> <span data-i18n="s_pdf_auto"></span></label>
+        <div class="muted" data-i18n="s_pdf_auto_help"></div>
+      </div>
+
+      <h2 data-i18n="s_ai_title"></h2>
+      <p class="muted" data-i18n="s_ai_help"></p>
+      <div class="field">
+        <label><span data-i18n="s_provider"></span>
+          <select id="provider">
+            <option value="gemini" data-i18n="s_prov_gemini"></option>
+            <option value="openai" data-i18n="s_prov_openai"></option>
+            <option value="claude" data-i18n="s_prov_claude"></option>
+          </select>
+        </label>
+      </div>
+      <div class="field">
+        <label><span data-i18n="s_key"></span>
+          <input type="password" id="apiKey" autocomplete="off">
+        </label>
+      </div>
+      <div class="field">
+        <label><span data-i18n="s_model"></span>
+          <input type="text" id="model" data-i18n-placeholder="s_model_ph">
+        </label>
+      </div>
+      <div class="field">
+        <button id="test" data-i18n="s_test"></button>
+        <span id="test-result" class="muted"></span>
+      </div>
+      <p class="muted" id="saved-msg"></p>
+    </section>
+  </main>
+
+  <script src="i18n.js"></script>
+  <script src="vocab.js"></script>
+</body>
+</html>

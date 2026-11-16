@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>Dragtionary</title>
+  <link rel="stylesheet" href="pdfjs/pdf_viewer.css">
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <div id="toolbar">
+    <span id="doc-title" data-i18n="v_title"></span>
+    <span class="spacer"></span>
+    <span id="page-info"></span>
+    <button id="zoom-out" data-i18n-title="v_zoom_out">−</button>
+    <button id="zoom-in" data-i18n-title="v_zoom_in">+</button>
+    <button id="zoom-fit" data-i18n="v_fit"></button>
+    <button id="open-file" data-i18n="v_open_file"></button>
+    <a id="original" target="_blank" rel="noopener" hidden data-i18n="v_original"></a>
+    <a id="vocab" href="vocab.html" target="_blank" data-i18n="v_vocab"></a>
+    <input type="file" id="file-input" accept="application/pdf,.pdf" hidden>
+  </div>
+
+  <div id="viewerContainer">
+    <div id="viewer" class="pdfViewer"></div>
+  </div>
+
+  <div id="message" hidden></div>
+
+  <script src="i18n.js"></script>
+  <script src="viewer.js" type="module"></script>
+  <script src="content.js"></script>
+</body>
+</html>

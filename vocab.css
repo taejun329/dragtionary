@@ -1,0 +1,87 @@
+:root {
+  --bg: #f6f8fa; --card: #fff; --text: #1f2328; --muted: #656d76;
+  --border: #d0d7de; --accent: #0969da; --ok: #1a7f37; --bad: #cf222e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1c2128; --card: #22272e; --text: #e6edf3; --muted: #9aa4af;
+    --border: #444c56; --accent: #6cb6ff; --ok: #57ab5a; --bad: #f47067;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.6 -apple-system, "Segoe UI", "Malgun Gothic", sans-serif;
+}
+header { max-width: 960px; margin: 0 auto; padding: 28px 20px 0; }
+h1 { margin: 0 0 14px; font-size: 24px; }
+nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); }
+.tab {
+  border: 0; background: none; color: var(--muted); font: inherit;
+  padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent;
+}
+a.tab { text-decoration: none; margin-left: auto; color: var(--accent); }
+.tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+main { max-width: 960px; margin: 0 auto; padding: 20px; }
+.panel { display: none; }
+.panel.active { display: block; }
+.toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.muted { color: var(--muted); font-size: 13px; }
+input[type="search"], select, button {
+  font: inherit; color: var(--text); background: var(--card);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+}
+input[type="search"] { flex: 1; min-width: 200px; }
+button { cursor: pointer; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.link { border: 0; background: none; color: var(--bad); padding: 0; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.word { font-weight: 600; white-space: nowrap; }
+td.ctx { color: var(--muted); font-size: 13px; max-width: 320px; }
+td.ctx a { color: var(--accent); text-decoration: none; }
+td.small { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.sub { font-size: 13px; color: var(--muted); }
+.explain { font-size: 13px; margin: 2px 0 4px; }
+h2 { font-size: 17px; margin: 28px 0 6px; }
+input[type="password"], input[type="text"] {
+  font: inherit; color: var(--text); background: var(--card);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+  margin-left: 8px; width: 320px; max-width: 100%;
+}
+.empty { padding: 40px 20px; text-align: center; color: var(--muted); background: var(--card); border: 1px dashed var(--border); border-radius: 8px; }
+.question { font-size: 28px; font-weight: 700; margin: 12px 0 4px; word-break: break-word; }
+.choices { display: grid; gap: 10px; margin: 18px 0; }
+.choice { text-align: left; padding: 12px 14px; font-size: 16px; }
+.choice.correct { border-color: var(--ok); color: var(--ok); font-weight: 600; }
+.choice.wrong { border-color: var(--bad); color: var(--bad); }
+.field { margin-bottom: 16px; }
+.field select { margin-left: 8px; }
+#quiz-wrong { margin: 12px 0 18px; }
+#quiz-wrong div { padding: 6px 0; border-bottom: 1px solid var(--border); }
+button.link.move { color: var(--accent); margin-right: 12px; }
+#quiz-context { white-space: pre-line; }
+
+button.link.hint { color: var(--accent); margin: 2px 0 6px; }
+#quiz-answer {
+  width: 100%; margin: 14px 0 10px; padding: 10px 12px; font: inherit; color: var(--text);
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px; resize: vertical;
+}
+#quiz-feedback { margin: 6px 0 16px; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; }
+.verdict { display: inline-block; font-weight: 700; margin-bottom: 6px; }
+.verdict.correct { color: var(--ok); }
+.verdict.partial { color: #bf8700; }
+.verdict.wrong { color: var(--bad); }
+#quiz-feedback-text { white-space: pre-line; margin-bottom: 10px; }
+#quiz-reference { padding-top: 10px; border-top: 1px solid var(--border); }
+.ref-title { font-size: 12px; color: var(--muted); }
+#quiz-self { margin: 10px 0 0; }
+
+[hidden] { display: none !important; }
+
+a.tab.second { margin-left: 0; }
+
+.toolbar label > span, .field label > span { margin-right: 6px; }
+.field > .muted { margin-top: 2px; }

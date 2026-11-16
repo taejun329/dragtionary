@@ -1,0 +1,20 @@
+html, body { margin: 0; height: 100%; background: #525659; font: 14px/1.4 -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; }
+#toolbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 40px; z-index: 10;
+  display: flex; align-items: center; gap: 8px; padding: 0 12px;
+  background: #323639; color: #f1f3f4; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+#doc-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 45%; font-weight: 600; }
+.spacer { flex: 1; }
+#page-info { color: #c4c7c5; font-size: 13px; margin-right: 6px; white-space: nowrap; }
+#toolbar button, #toolbar a {
+  font: inherit; color: #f1f3f4; background: #474b4f; border: 0; border-radius: 6px;
+  padding: 5px 10px; cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+#toolbar button:hover, #toolbar a:hover { background: #5b6065; }
+#viewerContainer { position: absolute; top: 40px; left: 0; right: 0; bottom: 0; overflow: auto; }
+#message {
+  position: fixed; top: 80px; left: 50%; transform: translateX(-50%); z-index: 11;
+  max-width: 520px; background: #fff; color: #1f2328; border-radius: 10px; padding: 18px 22px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3); line-height: 1.6; white-space: pre-line;
+}

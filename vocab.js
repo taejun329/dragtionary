@@ -137,32 +137,73 @@ $("export").addEventListener("click", () => {
 /* ---------- 시험 ---------- */
 // 방식 두 가지: "ai"(뜻을 직접 쓰면 AI가 채점하고 보충 설명) / "choice"(4지선다, API 키 없이 가능)
 let quiz = null;
+let quizHistory = []; // 지난 시험 기록 (최신이 앞). 브라우저에만 저장합니다.
+const HISTORY_MAX = 50;
+const sel = { mode: "choice", scope: "word", size: 10, dir: "word" }; // 시험 설정에서 고른 값
 
-function quizPool() {
-  const scope = $("quiz-scope").value;
+function poolOf(scope) {
   return scope === "all" ? vocab : vocab.filter((v) => kindOf(v) === scope);
 }
 
+// 버튼 묶음 하나를 그립니다. options: [{ value, label }]
+function drawSeg(id, options, current, onPick) {
+  const box = $(id);
+  box.textContent = "";
+  for (const o of options) {
+    const b = el("button", o.value === current ? "on" : null, o.label);
+    b.type = "button";
+    b.addEventListener("click", () => {
+      onPick(o.value);
+      resetQuiz();
+    });
+    box.appendChild(b);
+  }
+}
+
+// 시험 설정 화면을 현재 선택과 저장된 항목 수에 맞게 다시 그립니다.
 function resetQuiz() {
   $("quiz-start").hidden = false;
   $("quiz-run").hidden = true;
   $("quiz-result").hidden = true;
-  const pool = quizPool();
-  const ai = $("quiz-mode").value === "ai";
-  $("quiz-dir-label").hidden = ai;
+
+  const pool = poolOf(sel.scope);
+  const n = pool.length;
+  const ai = sel.mode === "ai";
+
+  // 문제 수: 가진 항목 수를 넘지 않는 선택지만 보여 줍니다.
+  const sizes = [5, 10, 20].filter((x) => x < n);
+  if (n) sizes.push(n);
+  if (!sizes.includes(sel.size)) sel.size = n > 10 ? 10 : n;
+
+  drawSeg("seg-mode", [{ value: "ai", label: T("q_mode_ai") }, { value: "choice", label: T("q_mode_choice") }], sel.mode, (v) => (sel.mode = v));
+  drawSeg(
+    "seg-scope",
+    [["word", "tab_words"], ["term", "tab_terms"], ["all", "q_all"]].map(([value, key]) => ({ value, label: T(key) + " " + poolOf(value).length })),
+    sel.scope,
+    (v) => {
+      sel.scope = v;
+      sel.size = 0; // 범위를 바꾸면 문제 수를 다시 정함
+    }
+  );
+  drawSeg("seg-size", sizes.map((x) => ({ value: x, label: x === n ? T("q_all_n", x) : String(x) })), sel.size, (v) => (sel.size = v));
+  drawSeg("seg-dir", [{ value: "word", label: T("q_dir_w2m") }, { value: "meaning", label: T("q_dir_m2w") }], sel.dir, (v) => (sel.dir = v));
+  $("quiz-dir-row").hidden = ai;
+  $("seg-size").parentElement.hidden = n === 0;
 
   let ready, note;
   if (ai) {
     const hasKey = !!$("apiKey").value.trim();
-    ready = hasKey && pool.length >= 1;
-    note = !hasKey ? T("q_need_key") : pool.length ? T("q_ai_count", pool.length) : T("q_none");
+    ready = hasKey && n >= 1;
+    note = !hasKey ? T("q_need_key") : n ? T("q_note_ai", sel.size) : T("q_none");
   } else {
     const distinct = new Set(pool.map((v) => v.translation)).size;
-    ready = pool.length >= 4 && distinct >= 4;
-    note = ready ? T("q_count", pool.length) : T("q_need4", pool.length);
+    ready = n >= 4 && distinct >= 4;
+    note = ready ? T("q_note_choice") : n ? T("q_need4", n) : T("q_none");
   }
   $("quiz-go").disabled = !ready;
+  $("quiz-go").textContent = ready ? T("q_start_n", sel.size) : T("q_start");
   $("quiz-note").textContent = note;
+  renderHistory();
 }
 
 // 처음 보는 항목과 자주 틀린 항목에 높은 우선순위
@@ -178,18 +219,22 @@ function pickQuestions(pool, n) {
     .map((x) => x.v);
 }
 
-function startQuiz() {
-  const pool = quizPool();
-  const n = Math.min(parseInt($("quiz-size").value, 10), pool.length);
+// items를 주면 그 항목들로만 시험을 봅니다(틀린 것만 다시).
+function startQuiz(items) {
+  const pool = poolOf(sel.scope);
+  const picked = items || pickQuestions(pool, Math.min(sel.size, pool.length));
+  if (!picked.length) return resetQuiz();
   quiz = {
-    mode: $("quiz-mode").value,
+    mode: sel.mode,
+    scope: sel.scope,
     pool,
-    items: shuffle(pickQuestions(pool, n)),
+    items: shuffle(picked),
     idx: 0,
     right: 0,
     partial: 0,
     missed: [],
-    dir: $("quiz-dir").value,
+    log: [], // 문제별 내역: 결과 화면과 기록에 씁니다
+    dir: sel.dir,
     busy: false,
   };
   $("quiz-start").hidden = true;
@@ -247,8 +292,8 @@ function showNext() {
   next.focus();
 }
 
-// 판정 결과를 통계에 반영. 부분 정답은 다시 나오도록 오답 쪽으로 셉니다.
-async function record(v, verdict) {
+// 판정 결과를 통계와 내역에 반영. 부분 정답은 다시 나오도록 오답 쪽으로 셉니다.
+async function record(v, verdict, answer, feedback) {
   if (verdict === "correct") {
     quiz.right++;
     v.correct = (v.correct || 0) + 1;
@@ -257,6 +302,13 @@ async function record(v, verdict) {
     quiz.missed.push(v);
     v.wrong = (v.wrong || 0) + 1;
   }
+  quiz.log.push({
+    text: v.text,
+    translation: v.translation,
+    answer: answer || "",
+    verdict,
+    feedback: quiz.mode === "ai" ? feedback || "" : "",
+  });
   await set({ vocab });
 }
 
@@ -267,7 +319,7 @@ async function answerChoice(v, chosen, correct) {
     if (b.textContent === correct) b.classList.add("correct");
     else if (b.textContent === chosen) b.classList.add("wrong");
   });
-  await record(v, chosen === correct ? "correct" : "wrong");
+  await record(v, chosen === correct ? "correct" : "wrong", chosen);
 
   const notes = [];
   if (v.explanation) notes.push(v.explanation);
@@ -286,8 +338,9 @@ function showReference(v) {
   if (v.context) ref.appendChild(el("div", "sub", T("col_context") + ": " + v.context));
 }
 
-async function finishWritten(v, verdict, feedback) {
-  await record(v, verdict);
+// aiFeedback: AI가 실제로 채점했을 때의 설명. 직접 판정한 경우에는 내역에 남기지 않습니다.
+async function finishWritten(v, verdict, feedback, aiFeedback) {
+  await record(v, verdict, quiz.answer, aiFeedback ? feedback : "");
   const badge = $("quiz-verdict");
   badge.textContent = T("verdict_" + verdict);
   badge.className = "verdict " + verdict;
@@ -305,6 +358,7 @@ async function submitWritten(skip) {
   if (!skip && !answer) return;
 
   quiz.busy = true;
+  quiz.answer = answer;
   $("quiz-answer").disabled = true;
   $("quiz-submit").disabled = true;
   $("quiz-skip").disabled = true;
@@ -329,9 +383,9 @@ async function submitWritten(skip) {
   } catch (e) {
     res = { ok: false, error: String(e.message || e) };
   }
-  if (quiz.items[quiz.idx] !== v) return; // 그 사이 시험이 바뀜
+  if (!quiz || quiz.items[quiz.idx] !== v) return; // 그 사이 시험이 바뀜
 
-  if (res && res.ok && res.verdict) return finishWritten(v, res.verdict, res.feedback);
+  if (res && res.ok && res.verdict) return finishWritten(v, res.verdict, res.feedback, true);
 
   // 채점 실패(한도 초과 등): 저장된 뜻을 보여 주고 직접 판정하게 함
   badge.textContent = T("q_grade_fail");
@@ -353,30 +407,91 @@ $("quiz-hint").addEventListener("click", () => {
   $("quiz-context").textContent = v.context || "";
   $("quiz-hint").hidden = true;
 });
-$("quiz-self-right").addEventListener("click", () => finishWritten(quiz.items[quiz.idx], "correct", $("quiz-feedback-text").textContent));
-$("quiz-self-wrong").addEventListener("click", () => finishWritten(quiz.items[quiz.idx], "wrong", $("quiz-feedback-text").textContent));
+$("quiz-self-right").addEventListener("click", () => finishWritten(quiz.items[quiz.idx], "correct", ""));
+$("quiz-self-wrong").addEventListener("click", () => finishWritten(quiz.items[quiz.idx], "wrong", ""));
+
+/* --- 결과와 기록 --- */
+function scoreText(total, right, partial) {
+  return T("q_score", total, right) + (partial ? " · " + T("q_score_partial", partial) : "");
+}
+
+// 문제별 내역(판정, 내 답, 저장된 뜻, AI 설명)을 box에 그립니다.
+function renderDetail(box, items) {
+  box.textContent = "";
+  for (const it of items) {
+    const row = el("div", "qitem");
+    row.appendChild(el("div", "verdict " + it.verdict, T("verdict_" + it.verdict)));
+    const body = el("div");
+    body.appendChild(el("div", "w", it.text));
+    body.appendChild(el("div", "sub", T("q_your_answer") + ": " + (it.answer || T("q_skipped"))));
+    body.appendChild(el("div", "sub", T("q_saved_meaning") + ": " + it.translation));
+    if (it.feedback) body.appendChild(el("div", "fb", it.feedback));
+    row.appendChild(body);
+    box.appendChild(row);
+  }
+}
+
+function historyLabel(h) {
+  const scope = T(h.scope === "term" ? "tab_terms" : h.scope === "all" ? "q_all" : "tab_words");
+  const date = new Date(h.at).toLocaleDateString(lang, { month: "short", day: "numeric" });
+  return [date, T(h.mode === "ai" ? "q_mode_ai" : "q_mode_choice"), scope].join(" · ");
+}
+
+function renderHistory() {
+  const box = $("quiz-history");
+  box.textContent = "";
+  $("quiz-history-clear").hidden = quizHistory.length === 0;
+  if (!quizHistory.length) {
+    box.appendChild(el("div", "muted", T("q_history_empty")));
+    return;
+  }
+  for (const h of quizHistory) {
+    const row = el("button", "hrow");
+    row.type = "button";
+    row.appendChild(el("span", null, historyLabel(h)));
+    row.appendChild(el("span", "score" + (h.right === h.total ? " full" : ""), h.right + " / " + h.total));
+    const body = el("div", "hbody");
+    body.hidden = true;
+    row.addEventListener("click", () => {
+      if (body.hidden && !body.childNodes.length) renderDetail(body, h.items || []);
+      body.hidden = !body.hidden;
+    });
+    box.appendChild(row);
+    box.appendChild(body);
+  }
+}
+
+async function finishQuiz() {
+  quizHistory = [
+    { at: Date.now(), mode: quiz.mode, scope: quiz.scope, total: quiz.items.length, right: quiz.right, partial: quiz.partial, items: quiz.log },
+    ...quizHistory,
+  ].slice(0, HISTORY_MAX);
+  await set({ quizHistory });
+
+  $("quiz-run").hidden = true;
+  $("quiz-result").hidden = false;
+  $("quiz-score").textContent = scoreText(quiz.items.length, quiz.right, quiz.partial);
+  $("quiz-result-note").textContent = quiz.missed.length ? T("q_review") : "";
+  renderDetail($("quiz-detail"), quiz.log);
+  $("quiz-retry").hidden = quiz.missed.length === 0;
+  renderList();
+}
 
 $("quiz-next").addEventListener("click", () => {
   quiz.idx++;
   if (quiz.idx < quiz.items.length) return showQuestion();
-
-  $("quiz-run").hidden = true;
-  $("quiz-result").hidden = false;
-  $("quiz-score").textContent =
-    T("q_score", quiz.items.length, quiz.right) + (quiz.partial ? " · " + T("q_score_partial", quiz.partial) : "");
-  const box = $("quiz-wrong");
-  box.textContent = "";
-  if (quiz.missed.length) {
-    box.appendChild(el("p", "muted", T("q_review")));
-    for (const m of quiz.missed) box.appendChild(el("div", null, m.text + " — " + m.translation));
-  }
-  renderList();
+  finishQuiz();
 });
 
-$("quiz-go").addEventListener("click", startQuiz);
+$("quiz-go").addEventListener("click", () => startQuiz());
 $("quiz-again").addEventListener("click", resetQuiz);
-$("quiz-scope").addEventListener("change", resetQuiz);
-$("quiz-mode").addEventListener("change", resetQuiz);
+// 틀린 것만 다시: 그 사이 목록에서 지운 항목은 뺍니다.
+$("quiz-retry").addEventListener("click", () => startQuiz([...new Set(quiz.missed)].filter((v) => vocab.includes(v))));
+$("quiz-history-clear").addEventListener("click", async () => {
+  quizHistory = [];
+  await set({ quizHistory });
+  renderHistory();
+});
 
 /* ---------- 설정 ---------- */
 async function saveSettings() {
@@ -449,11 +564,12 @@ $("test").addEventListener("click", async () => {
 
 /* ---------- 초기화 ---------- */
 async function init() {
-  const data = await get(["vocab", "settings"]);
+  const data = await get(["vocab", "settings", "quizHistory"]);
   vocab = data.vocab || [];
+  quizHistory = data.quizHistory || [];
   const s = data.settings || {};
   loadSettings(s);
-  $("quiz-mode").value = s.apiKey ? "ai" : "choice"; // 키가 있으면 AI 채점을 기본으로
+  sel.mode = s.apiKey ? "ai" : "choice"; // 키가 있으면 AI 채점을 기본으로
   applyLang();
 }
 

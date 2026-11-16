@@ -7,7 +7,7 @@
 </head>
 <body>
   <header>
-    <h1>Dragtionary</h1>
+    <h1 class="wm" aria-label="Dragtionary"><span class="sel">DRAG</span><span class="car"></span>tionary</h1>
     <nav>
       <button class="tab active" data-tab="list" data-kind="word" data-i18n="tab_words"></button>
       <button class="tab" data-tab="list" data-kind="term" data-i18n="tab_terms"></button>
@@ -39,38 +39,25 @@
 
     <section id="quiz" class="panel">
       <div id="quiz-start">
-        <p data-i18n="quiz_intro"></p>
-        <div class="toolbar">
-          <label><span data-i18n="q_mode"></span>
-            <select id="quiz-mode">
-              <option value="ai" data-i18n="q_mode_ai"></option>
-              <option value="choice" data-i18n="q_mode_choice"></option>
-            </select>
-          </label>
-          <label><span data-i18n="q_scope"></span>
-            <select id="quiz-scope">
-              <option value="word" data-i18n="tab_words"></option>
-              <option value="term" data-i18n="tab_terms"></option>
-              <option value="all" data-i18n="q_all"></option>
-            </select>
-          </label>
-          <label><span data-i18n="q_size"></span>
-            <select id="quiz-size">
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="20">20</option>
-              <option value="9999" data-i18n="q_all"></option>
-            </select>
-          </label>
-          <label id="quiz-dir-label"><span data-i18n="q_dir"></span>
-            <select id="quiz-dir">
-              <option value="word" data-i18n="q_dir_w2m"></option>
-              <option value="meaning" data-i18n="q_dir_m2w"></option>
-            </select>
-          </label>
-          <button id="quiz-go" class="primary" data-i18n="q_start"></button>
+        <div class="qcard">
+          <h2 data-i18n="q_title"></h2>
+          <p class="muted" data-i18n="quiz_intro"></p>
+          <div class="qrow"><span data-i18n="q_mode"></span><div class="seg" id="seg-mode"></div></div>
+          <div class="qrow"><span data-i18n="q_scope"></span><div class="seg" id="seg-scope"></div></div>
+          <div class="qrow"><span data-i18n="q_size"></span><div class="seg" id="seg-size"></div></div>
+          <div class="qrow" id="quiz-dir-row"><span data-i18n="q_dir"></span><div class="seg" id="seg-dir"></div></div>
+          <div class="qfoot">
+            <span id="quiz-note" class="muted"></span>
+            <button id="quiz-go" class="primary"></button>
+          </div>
         </div>
-        <p id="quiz-note" class="muted"></p>
+        <div class="qcard">
+          <div class="qhead">
+            <h3 data-i18n="q_history"></h3>
+            <button id="quiz-history-clear" class="link" data-i18n="q_history_clear" hidden></button>
+          </div>
+          <div id="quiz-history"></div>
+        </div>
       </div>
       <div id="quiz-run" hidden>
         <div class="muted" id="quiz-progress"></div>
@@ -100,8 +87,12 @@
       </div>
       <div id="quiz-result" hidden>
         <h2 id="quiz-score"></h2>
-        <div id="quiz-wrong"></div>
-        <button id="quiz-again" class="primary" data-i18n="q_again"></button>
+        <p id="quiz-result-note" class="muted"></p>
+        <div id="quiz-detail" class="qdetail"></div>
+        <div class="toolbar">
+          <button id="quiz-retry" class="primary" data-i18n="q_retry_wrong"></button>
+          <button id="quiz-again" data-i18n="q_again"></button>
+        </div>
       </div>
     </section>
 

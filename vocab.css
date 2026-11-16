@@ -1,11 +1,11 @@
 :root {
   --bg: #f6f8fa; --card: #fff; --text: #1f2328; --muted: #656d76;
-  --border: #d0d7de; --accent: #0969da; --ok: #1a7f37; --bad: #cf222e;
+  --border: #d0d7de; --accent: #0969da; --ok: #1a7f37; --bad: #cf222e; --tint: #ddeaff;
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #1c2128; --card: #22272e; --text: #e6edf3; --muted: #9aa4af;
-    --border: #444c56; --accent: #6cb6ff; --ok: #57ab5a; --bad: #f47067;
+    --border: #444c56; --accent: #6cb6ff; --ok: #57ab5a; --bad: #f47067; --tint: #1f3a5f;
   }
 }
 * { box-sizing: border-box; }
@@ -59,8 +59,6 @@ input[type="password"], input[type="text"] {
 .choice.wrong { border-color: var(--bad); color: var(--bad); }
 .field { margin-bottom: 16px; }
 .field select { margin-left: 8px; }
-#quiz-wrong { margin: 12px 0 18px; }
-#quiz-wrong div { padding: 6px 0; border-bottom: 1px solid var(--border); }
 button.link.move { color: var(--accent); margin-right: 12px; }
 #quiz-context { white-space: pre-line; }
 
@@ -85,3 +83,39 @@ a.tab.second { margin-left: 0; }
 
 .toolbar label > span, .field label > span { margin-right: 6px; }
 .field > .muted { margin-top: 2px; }
+
+/* 워드마크: DRAG을 드래그해 선택한 모양 */
+.wm { display: inline-flex; align-items: center; font-size: 24px; font-weight: 700; letter-spacing: -0.3px; margin: 0 0 14px; line-height: 1.3; }
+.wm .sel { background: var(--tint); color: var(--accent); border-radius: 3px 0 0 3px; padding: 0 0 0 3px; }
+.wm .car { display: inline-block; width: 0; height: 1.2em; position: relative; }
+.wm .car::before { content: ""; position: absolute; left: -1px; top: 0; width: 2px; height: 100%; background: var(--accent); }
+
+/* 시험 설정 */
+.qcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 14px; }
+.qcard h2 { margin: 0 0 2px; }
+.qcard h3 { margin: 0; font-size: 15px; }
+.qcard > .muted { margin: 0 0 10px; }
+.qrow { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 12px; padding: 8px 0; }
+.qrow > span { font-size: 13px; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; justify-self: start; }
+.seg button { border: 0; border-radius: 0; background: none; color: var(--muted); padding: 7px 14px; }
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button.on { background: var(--tint); color: var(--accent); font-weight: 600; }
+.seg button:disabled { opacity: .45; cursor: default; }
+.qfoot { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--border); margin-top: 10px; padding-top: 14px; }
+.qfoot button { padding: 8px 18px; white-space: nowrap; }
+button.primary:disabled { opacity: .5; cursor: default; }
+.qhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.hrow { display: flex; justify-content: space-between; gap: 12px; width: 100%; text-align: left; border: 0; border-top: 1px solid var(--border); border-radius: 0; background: none; padding: 9px 0; font-size: 14px; }
+.hrow .score { color: var(--muted); white-space: nowrap; }
+.hrow .score.full { color: var(--ok); font-weight: 600; }
+.hbody { padding: 2px 0 10px; }
+
+/* 시험 결과: 문제별 내역 */
+.qdetail { margin: 10px 0 18px; }
+.qitem { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.qitem .verdict { margin: 0; font-size: 13px; }
+.qitem .w { font-weight: 600; }
+.qitem .sub { margin-top: 2px; }
+.qitem .fb { font-size: 13px; margin-top: 4px; white-space: pre-line; }
+.tiny { font-size: 12px; }

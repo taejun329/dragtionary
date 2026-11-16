@@ -1,6 +1,6 @@
 .top, main { max-width: 720px; margin: 0 auto; }
 .top { display: flex; justify-content: space-between; align-items: center; padding: 22px 20px 0; }
-.brand { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; }
+.top .wm { margin: 0; font-size: 22px; }
 .lang { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 8px; }
 .lang select { font-size: 14px; }
 
@@ -11,6 +11,7 @@
 .howto { padding-left: 20px; margin: 0 0 14px; }
 .howto li { margin-bottom: 12px; }
 .howto li .muted { margin-left: 8px; }
+.howto li .keyrow { margin-top: 0; }
 .keyrow { display: flex; gap: 8px; margin-top: 8px; }
 .keyrow input { flex: 1; margin-left: 0; width: auto; }
 .button {
@@ -48,3 +49,4 @@
 .nav button { min-width: 110px; padding: 8px 14px; }
 @media (prefers-color-scheme: dark) { .quote mark { background: #6b5a00; } }
 #screen-2 .demo { margin: 22px 0 0; padding-top: 16px; border-top: 1px solid var(--border); }
+.screen p.muted.tiny { margin-top: 2px; }
